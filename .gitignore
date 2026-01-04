@@ -62,3 +62,4 @@ _site/
 *.tmp
 *.temp
 .cache/
+.env*.local
