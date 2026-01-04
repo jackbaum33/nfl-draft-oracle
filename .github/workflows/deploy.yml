@@ -2,8 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -11,94 +10,60 @@ permissions:
   pages: write
   id-token: write
 
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
 jobs:
   deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
+      
       - name: Setup Pages
         uses: actions/configure-pages@v4
-
-      - name: Find and prepare HTML
+      
+      - name: Find and copy HTML
         run: |
           mkdir -p _site
           
-          echo "🔍 Searching for index.html..."
+          echo "📁 Repository structure:"
+          find . -name "*.html" -type f | grep -v node_modules | head -20
           
-          # Try different possible locations
+          # Try to find index.html
           if [ -f "nfl-draft-oracle/public/index.html" ]; then
-            SOURCE_HTML="nfl-draft-oracle/public/index.html"
-            echo "✅ Found: nfl-draft-oracle/public/index.html"
+            echo "✅ Found at: nfl-draft-oracle/public/index.html"
+            cp nfl-draft-oracle/public/index.html _site/index.html
           elif [ -f "public/index.html" ]; then
-            SOURCE_HTML="public/index.html"
-            echo "✅ Found: public/index.html"
+            echo "✅ Found at: public/index.html"
+            cp public/index.html _site/index.html
           elif [ -f "index.html" ]; then
-            SOURCE_HTML="index.html"
-            echo "✅ Found: index.html (root)"
+            echo "✅ Found at: index.html"
+            cp index.html _site/index.html
           else
-            echo "❌ Error: Could not find index.html in any expected location"
-            echo "📁 Repository structure:"
-            find . -name "index.html" -o -name "*.html" | head -20
+            echo "❌ ERROR: Could not find index.html!"
             exit 1
           fi
           
-          echo "SOURCE_HTML=$SOURCE_HTML" >> $GITHUB_ENV
-
-      - name: Create production HTML
-        env:
-          VERCEL_URL: 'nfl-draft-oracle.vercel.app'  # TODO: Replace with your actual Vercel URL
-        run: |
-          node -e "
-          const fs = require('fs');
-          const sourceHtml = process.env.SOURCE_HTML;
-          const vercelUrl = process.env.VERCEL_URL;
+          # Replace localhost with Vercel URL
+          # TODO: Replace YOUR_VERCEL_URL with your actual Vercel URL
+          VERCEL_URL="http://nfl-draft-oracle.vercel.app/"
           
-          console.log('📝 Reading HTML from:', sourceHtml);
-          let html = fs.readFileSync(sourceHtml, 'utf8');
+          if [ "$VERCEL_URL" != "YOUR_VERCEL_URL" ]; then
+            sed -i "s|const API_ENDPOINT = '/api/openai'|const API_ENDPOINT = 'https://$VERCEL_URL/api/openai'|g" _site/index.html
+            sed -i "s|const DB_URL = '/database/nfl_draft.db'|const DB_URL = 'https://$VERCEL_URL/database/nfl_draft.db'|g" _site/index.html
+            echo "✅ Updated URLs to use Vercel: $VERCEL_URL"
+          else
+            echo "⚠️ WARNING: VERCEL_URL not set, URLs will point to localhost"
+          fi
           
-          // Replace API endpoints with Vercel URL
-          html = html.replace(
-            /const API_ENDPOINT = '\/api\/openai';/g,
-            \`const API_ENDPOINT = '\${vercelUrl}/api/openai';\`
-          );
-          html = html.replace(
-            /const DB_URL = '\/database\/nfl_draft\.db';/g,
-            \`const DB_URL = '\${vercelUrl}/database/nfl_draft.db';\`
-          );
+          echo "📦 Deployment contents:"
+          ls -lah _site/
           
-          fs.writeFileSync('_site/index.html', html);
-          console.log('✅ Production HTML created at: _site/index.html');
-          console.log('🔗 API endpoint:', vercelUrl + '/api/openai');
-          console.log('🔗 Database URL:', vercelUrl + '/database/nfl_draft.db');
-          "
-
-      - name: Verify deployment files
-        run: |
-          echo "📦 Deployment files:"
-          ls -lh _site/
-          echo ""
-          echo "📄 First 50 lines of index.html:"
-          head -50 _site/index.html
-
+          echo "📄 Verifying index.html exists:"
+          head -20 _site/index.html
+      
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: '_site'
-
+      
       - name: Deploy to GitHub Pages
-        id: deployment
         uses: actions/deploy-pages@v4
