@@ -50,13 +50,30 @@ app.post('/api/openai', async (req, res) => {
 
 // Serve the database file
 app.get('/database/nfl_draft.db', (req, res) => {
-    const dbPath = path.join(__dirname, '..', 'nfl-draft-scrape', 'nfl_draft.db');
-    res.sendFile(dbPath, (err) => {
-        if (err) {
-            console.error('Error sending database file:', err);
-            res.status(404).json({ error: 'Database file not found' });
+    const possiblePaths = [
+        path.join(__dirname, 'nfl_draft.db'),  // Same directory as server.js
+        path.join(__dirname, '..', 'nfl-draft-scrape', 'nfl_draft.db'),
+        path.join(__dirname, 'database', 'nfl_draft.db')
+    ];
+
+    let dbPath = null;
+    for (const p of possiblePaths) {
+        if (fs.existsSync(p)) {
+            dbPath = p;
+            console.log('✅ Found database at:', dbPath);
+            break;
         }
-    });
+    }
+
+    if (!dbPath) {
+        console.error('❌ Database not found. Searched:', possiblePaths);
+        return res.status(404).json({ 
+            error: 'Database file not found',
+            searchedPaths: possiblePaths
+        });
+    }
+
+    res.sendFile(dbPath);
 });
 
 // Serve the main HTML file
