@@ -242,7 +242,7 @@ def main():
     
     # Create scraper instance
     # You can modify the year range here
-    scraper = NFLDraftScraper(start_year=1936, end_year=2024)
+    scraper = NFLDraftScraper(start_year=1936, end_year=2025)
     
     # Scrape all years (with 3 second delay between requests)
     scraper.scrape_all_years(delay=3)
