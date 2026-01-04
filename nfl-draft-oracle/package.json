@@ -4,18 +4,24 @@
     "description": "Backend server for NFL Draft Oracle with OpenAI API integration",
     "main": "server.js",
     "scripts": {
-      "start": "node server.js",
-      "dev": "nodemon server.js"
+        "start": "node server.js",
+        "dev": "nodemon server.js"
     },
-    "keywords": ["nfl", "draft", "openai", "sql"],
+    "keywords": [
+        "nfl",
+        "draft",
+        "openai",
+        "sql"
+    ],
     "author": "",
     "license": "MIT",
     "dependencies": {
-      "cors": "^2.8.5",
-      "dotenv": "^16.4.5",
-      "express": "^4.18.2"
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.5",
+        "express": "^4.18.2",
+        "node-fetch": "^2.7.0"
     },
     "devDependencies": {
-      "nodemon": "^3.0.2"
+        "nodemon": "^3.0.2"
     }
-  }
+}

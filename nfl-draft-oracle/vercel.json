@@ -1,19 +1,14 @@
 {
-    "version": 2,
-    "builds": [
-      {
-        "src": "server.js",
-        "use": "@vercel/node"
-      }
-    ],
-    "routes": [
-      {
-        "src": "/api/openai",
-        "dest": "server.js"
-      },
-      {
-        "src": "/database/nfl_draft.db",
-        "dest": "server.js"
-      }
-    ]
-  }
+  "version": 2,
+  "functions": {
+    "api/**/*.js": {
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/database/nfl_draft.db",
+      "destination": "/api/database"
+    }
+  ]
+}
