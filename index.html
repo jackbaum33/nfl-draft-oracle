@@ -1098,31 +1098,44 @@ Answer:`
         }
 
         function showLoading() {
-            document.getElementById('results').classList.remove('hidden');
-            document.getElementById('loadingIndicator').classList.remove('hidden');
-            hideResults();
-        }
+    const results = document.getElementById('results');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    if (results) results.classList.remove('hidden');
+    if (loadingIndicator) loadingIndicator.classList.remove('hidden');
+    hideResults();
+}
 
-        function hideLoading() {
-            document.getElementById('loadingIndicator').classList.add('hidden');
-        }
+function hideLoading() {
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    if (loadingIndicator) loadingIndicator.classList.add('hidden');
+}
 
-        function showError(message) {
-            document.getElementById('results').classList.remove('hidden');
-            document.getElementById('errorMessage').textContent = message;
-            document.getElementById('errorDisplay').classList.remove('hidden');
-        }
+function showError(message) {
+    const results = document.getElementById('results');
+    const errorMessage = document.getElementById('errorMessage');
+    const errorDisplay = document.getElementById('errorDisplay');
+    
+    if (results) results.classList.remove('hidden');
+    if (errorMessage) errorMessage.textContent = message;
+    if (errorDisplay) errorDisplay.classList.remove('hidden');
+}
 
-        function hideError() {
-            document.getElementById('errorDisplay').classList.add('hidden');
-        }
+function hideError() {
+    const errorDisplay = document.getElementById('errorDisplay');
+    if (errorDisplay) errorDisplay.classList.add('hidden');
+}
 
-        function hideResults() {
-            document.getElementById('sqlDisplay').classList.add('hidden');
-            document.getElementById('answerDisplay').classList.add('hidden');
-            document.getElementById('tableDisplay').classList.add('hidden');
-            document.getElementById('chartDisplay').classList.add('hidden');
-        }
+function hideResults() {
+    const sqlDisplay = document.getElementById('sqlDisplay');
+    const answerDisplay = document.getElementById('answerDisplay');
+    const tableDisplay = document.getElementById('tableDisplay');
+    const chartDisplay = document.getElementById('chartDisplay');
+    
+    if (sqlDisplay) sqlDisplay.classList.add('hidden');
+    if (answerDisplay) answerDisplay.classList.add('hidden');
+    if (tableDisplay) tableDisplay.classList.add('hidden');
+    if (chartDisplay) chartDisplay.classList.add('hidden');
+}
 
         console.log('✅ NFL Draft Oracle - Ready!');
     </script>
