@@ -811,21 +811,56 @@ Examples:
         }
 
         async function convertToSQL(naturalQuery) {
-            try {
-                const response = await fetch(API_ENDPOINT, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        model: 'gpt-4o',
-                        messages: [{
-                            role: 'user',
-                            content: `You are an expert SQL query generator for an NFL draft database.
+    try {
+        const response = await fetch(API_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                model: 'gpt-4o',
+                messages: [{
+                    role: 'user',
+                    content: `You are an expert SQL query generator for an NFL draft database.
 
 Database Schema:
 Table name: draft_picks
 Columns: ${SCHEMA.columns.join(', ')}
+
+Team Name to Code Mapping:
+- Jets = NYJ
+- Giants = NYG
+- Patriots = NE
+- Bills = BUF
+- Dolphins = MIA
+- Ravens = BLT
+- Browns = CLV
+- Bengals = CIN
+- Steelers = PIT
+- Texans = HST
+- Colts = IND
+- Jaguars = JAX
+- Titans = TEN
+- Broncos = DEN
+- Chiefs = KC
+- Raiders = OAK
+- Chargers = LAC
+- Cowboys = DAL
+- Eagles = PHI
+- Redskins/Washington = WAS
+- Giants = NYG
+- Packers = GB
+- Bears = CHI
+- Lions = DET
+- Vikings = MIN
+- Falcons = ATL
+- Panthers = CAR
+- Saints = NO
+- Buccaneers = TB
+- Cardinals = ARZ
+- Rams = LA
+- 49ers/Niners = SF
+- Seahawks = SEA
 
 User Question: "${naturalQuery}"
 
@@ -833,43 +868,45 @@ Generate a SQLite query to answer this question. Return ONLY the SQL query, no e
 
 Important notes:
 - Use proper SQLite syntax
+- Teams are stored as 3-letter codes (see mapping above)
+- When user mentions a team name, convert it to the correct code using the mapping
+- Use exact matches with = for team codes, not LIKE
 - Handle NULL values appropriately with "IS NULL" or "IS NOT NULL"
 - Use COALESCE() for NULL handling when needed
 - Use appropriate aggregations (COUNT, AVG, SUM, etc.)
 - Add ORDER BY and LIMIT when relevant
 - For "most" queries, use ORDER BY DESC
 - Column names should match exactly as listed above
-- For text comparisons, use LIKE with % wildcards for partial matches
 - Filter out NULL values in WHERE clauses when they would skew results
 - Use CAST() to convert types when comparing different data types
-- If asking about Hall of Fame, note that we don't have a "hof" column - use pro_bowls or all_pros_first_team as proxies
 
 Examples:
-- "Which college has the most picks?" → SELECT college_id, COUNT(*) as total FROM draft_picks WHERE college_id IS NOT NULL GROUP BY college_id ORDER BY total DESC LIMIT 10
-- "Show QBs from 2020-2024" → SELECT * FROM draft_picks WHERE pos = 'QB' AND year BETWEEN 2020 AND 2024 ORDER BY year DESC, draft_pick
+- "Jets first round picks" → WHERE team = 'NYJ' AND draft_round = 1
+- "Patriots quarterbacks" → WHERE team = 'NE' AND pos = 'QB'
+- "49ers receivers" → WHERE team = 'SF' AND pos = 'WR'
 
 SQL Query:`
-                        }],
-                        temperature: 0.3,
-                        max_tokens: 500
-                    })
-                });
+                    }],
+                    temperature: 0.3,
+                    max_tokens: 500
+                })
+            });
 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`API request failed: ${response.status}`);
-                }
-
-                const data = await response.json();
-                let sqlQuery = data.choices[0].message.content.trim();
-                sqlQuery = sqlQuery.replace(/```sql\n?/g, '').replace(/```\n?/g, '').trim();
-                
-                return sqlQuery;
-            } catch (error) {
-                console.error('convertToSQL error:', error);
-                throw error;
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`API request failed: ${response.status}`);
             }
+
+            const data = await response.json();
+            let sqlQuery = data.choices[0].message.content.trim();
+            sqlQuery = sqlQuery.replace(/```sql\n?/g, '').replace(/```\n?/g, '').trim();
+            
+            return sqlQuery;
+        } catch (error) {
+            console.error('convertToSQL error:', error);
+            throw error;
         }
+    }
 
         function executeQuery(sqlQuery) {
             try {
